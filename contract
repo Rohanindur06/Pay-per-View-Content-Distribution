@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract PayPerView {
+    address public owner;
+    
+    // Mapping to store content prices
+    mapping(uint256 => uint256) public contentPrices;
+    
+    // Mapping to track users who have paid for content
+    mapping(address => mapping(uint256 => bool)) public contentAccess;
+    
+    // Event to emit when a user purchases content
+    event ContentPurchased(address indexed user, uint256 indexed contentId, uint256 price);
+
+    // Constructor to set the contract owner
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Function to add content with a price (only by the owner)
+    function addContent(uint256 contentId, uint256 price) public {
+        require(msg.sender == owner, "Only the owner can add content.");
+        contentPrices[contentId] = price;
+    }
+
+    // Function for users to pay for content and gain access
+    function viewContent(uint256 contentId) public payable {
+        uint256 price = contentPrices[contentId];
+        require(price > 0, "Content not available.");
+        require(msg.value == price, "Incorrect payment amount.");
+
+        contentAccess[msg.sender][contentId] = true;
+
+        // Emit the ContentPurchased event
+        emit ContentPurchased(msg.sender, contentId, price);
+    }
+
+    // Function for the owner to withdraw earnings
+    function withdraw() public {
+        require(msg.sender == owner, "Only the owner can withdraw.");
+        payable(owner).transfer(address(this).balance);
+    }
+
+    // Function to check if a user has access to content
+    function hasAccess(uint256 contentId) public view returns (bool) {
+        return contentAccess[msg.sender][contentId];
+    }
+}
