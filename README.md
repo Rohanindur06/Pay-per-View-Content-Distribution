@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 contract PayPerView {
     address public owner;
-
+    
     struct Content {
         uint256 id;
         string name;
